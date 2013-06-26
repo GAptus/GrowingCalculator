@@ -1,0 +1,301 @@
+<html>
+
+	<head>
+
+		<title>Using JS to process HTML Forms</title>
+
+		<script type="text/javascript">
+
+			var tableCount = 0;
+
+			var changedX;
+			var changedY;
+			var changedWidth;
+			var changedHeight;
+
+			function writeText(form) {
+				var JSONContainer;
+				var previous = [];
+
+				if (tableCount != 0) {
+					for (var i = tableCount; i <= tableCount && i > 0; i--) {
+						var current = [];
+						var option = getCheckedRadio(document.getElementsByName(createName("resizingRadio", i)));
+						var percentage = document.getElementById(createName("percentageTable", i)).value;
+						var delay = document.getElementById(createName("delayTable", i)).value;
+						var duration = document.getElementById(createName("durationTable", i)).value;
+						if (i == tableCount) {
+							current.push(pickOption(option, percentage, delay, duration, form, []));
+						}
+						else {
+							current.push(pickOption(option, percentage, delay, duration, form, previous.pop()));
+						}
+						previous.push(current);
+					}
+
+					JSONContainer = ({"actions" : previous.pop()});
+
+					document.write(JSON.stringify(JSONContainer));
+				}
+
+			}
+
+			function getCheckedRadio(radio_group) {
+				for (var i = 0; i < radio_group.length; i++) {
+					var button = radio_group[i];
+					if (button.checked) {
+						return button.value;
+					}
+				}
+			}
+
+			function pickOption(option, percentage, delay, duration, form, array) {
+
+				var temp;
+
+				var width = form.widthValue.value;
+				var height = form.heightValue.value;
+				var x = form.xValue.value;
+				var y = form.yValue.value;
+				var elementID = form.elementID.value;
+
+				if (option == "growing") {
+					changedWidth = growWidth(width, percentage);
+					changedHeight = growHeight(height, percentage);
+					changedX = growX(changedWidth , width, x);
+					changedY = growY(changedHeight, height, y);
+
+					temp = buildJSON(elementID, changedX, changedY, parseInt(changedWidth), parseInt(changedHeight), delay, duration, array);
+				}
+				else if (option == "shrinking") {
+					changedWidth = shrinkWidth(width, percentage);
+					changedHeight = shrinkHeight(height, percentage);
+					changedX = shrinkX(width, changedWidth, x);
+					changedY = shrinkY(height, changedHeight, y);
+
+					temp = buildJSON(elementID, changedX, changedY, parseInt(changedWidth), parseInt(changedHeight), delay, duration, array);
+				}
+				else {
+
+					var tempWidth = form.originalWidth.value;
+					var tempHeight = form.originalHeight.value;
+					changedX = x;
+					changedY = y;
+
+					if (percentage > 100) {
+						tempWidth -= (tempWidth * (1 + (percentage / 100)));
+						tempHeight -= (tempHeight * (1 + (percentage / 100)));
+					}
+					if (percentage == 100) {
+
+					}
+					if (percentage < 100) {
+						tempWidth -= (tempWidth * (1 - (percentage / 100)));
+						tempHeight -= (tempHeight * (1 - (percentage / 100)));
+					}
+
+					temp = buildJSON(elementID, changedX, changedY, parseInt(changedWidth), parseInt(changedHeight), delay, duration, array);
+				}
+
+				form.widthValue.value = changedWidth;
+				form.heightValue.value = changedHeight;
+				form.xValue.value = changedX;
+				form.yValue.value = changedY;
+
+				return temp;
+			}
+
+			function buildJSON(elementID, x, y, width, height, delay, duration, array) {
+				var current = {
+							"type" : "ANIMATE",
+							"element_id" : elementID,
+							"exclude" : "",
+							"x" : x,
+							"y" : y,
+							"w" : width,
+							"h" : height,
+							"left_clip" : "",
+							"right_clip" : "",
+							"top_clip" : "",
+							"bottom_clip" : "",
+							"opacity_to" : "",
+							"delay" : delay,
+							"duration" : duration,
+							"direction" : "NORMAL",
+							"count" : 1,
+							"easing_function" : "LINEAR",
+							"loop" : "",
+							"actions" : array
+							};
+
+				return current;
+			}
+
+			function shrinkWidth(width, percentage) {
+				var changedWidth = width * (1 - (percentage / 100));
+				return changedWidth;
+			}
+
+			function shrinkHeight(height, percentage) {
+				var changedHeight = height * (1 - (percentage / 100));
+				return changedHeight;
+			}
+
+			function shrinkX(changedWidth, width, x) {
+				var changedX = parseInt(x) - parseInt(((width - changedWidth) / 2));
+				return changedX;
+			}
+
+			function shrinkY(changedHeight, height, y) {
+				var changedY = parseInt(y) - parseInt(((height - changedHeight)) / 2);
+				return changedY;
+			}
+
+			function growWidth(width, percentage) {
+				var changedWidth = width * (1 + (percentage / 100));
+				return changedWidth;
+			}
+
+			function growHeight(height, percentage) {
+				var changedHeight = height * (1 + (percentage / 100));
+				return changedHeight;
+			}
+
+			function growX(width, changedWidth, x) {
+				var changedX = parseInt(x) + parseInt(((changedWidth - width) / 2));
+				return changedX;
+			}
+
+			function growY(height, changedHeight, y) {
+				var changedY = parseInt(y) + parseInt(((changedHeight - height) / 2));
+				return changedY;
+			}
+
+			function addAction() {
+
+				tableCount++;
+
+				var hr = document.createElement("hr");
+				var table = document.createElement("table");
+
+				var r = table.insertRow(0);
+				var c = r.insertCell(0);
+				c.innerHTML = "Growing";
+				c = r.insertCell(1);
+				c.innerHTML = '<input type="radio" name=' + createName("resizingRadio", tableCount) + ' value="growing" />';
+				c = r.insertCell(2);
+				c.innerHTML = "Shrinking";
+				c = r.insertCell(3);
+				c.innerHTML = '<input type="radio" name=' + createName("resizingRadio", tableCount) + ' value="shrinking" />';
+				c = r.insertCell(4);
+				c.innerHTML = "Grow From 0";
+				c = r.insertCell(5);
+				c.innerHTML = '<input type="radio" name=' + createName("resizingRadio", tableCount) + ' value="growFromZero" />';
+				r = table.insertRow(1);
+				c = r.insertCell(0);
+				c.innerHTML = "Percentage";
+				c = r.insertCell(1);
+				c.innerHTML = '<input type="text"  id=' + createName("percentageTable", tableCount) + ' value="0" />';
+				c = r.insertCell(2);
+				c.innerHTML = "Delay";
+				c = r.insertCell(3);
+				c.innerHTML = '<input type="text" id=' + createName("delayTable", tableCount) + ' value="0" />';
+				c = r.insertCell(4);
+				c.innerHTML = "Duration";
+				c = r.insertCell(5);
+				c.innerHTML = '<input type="text" id=' + createName("durationTable", tableCount) + ' value="0" />';
+
+
+				document.getElementById("actionsContainer").appendChild(table);
+				document.getElementById("actionsContainer").appendChild(hr);
+			}
+
+			function createName(name, count) {
+				var currentName = name + count;
+				return currentName;
+			}
+
+		</script>
+
+	</head>	
+
+
+	<body>
+
+		<form name="myForm" action="" method="GET">
+			<table>
+				<h3>Enter the orginal width and height</h3>
+				<tr>
+					<td>
+						Width: 
+					</td>
+					<td>
+						<input type="text" name="originalWidth">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Height:
+					</td>		
+					<td>
+						<input type="text" name="originalHeight">
+					</td>	
+				</tr>
+			</table>
+			<table>
+				<h3>Enter your starting values</h3>
+				<tr>
+					<td>
+						Element_ID:
+					</td>
+					<td>
+						<input type="text" name="elementID">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						X:
+					</td>
+					<td>
+						<input type="text" name="xValue">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Y:
+					</td>
+					<td>
+						<input type="text" name="yValue">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Width: 
+					</td>
+					<td>
+						<input type="text" name="widthValue">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Height:
+					</td>
+					<td>
+						<input type="text" name="heightValue">
+					</td>
+				</tr>
+			</table>
+
+			<hr>
+
+			<div id="actionsContainer"></div>
+
+
+			<input type="button" name="write" value="GO!" onclick="writeText(this.form)">
+			
+
+			<input type="button" name="addActionButton" value="Add new Actions" onclick="addAction()"
+
+		</form>	
+
+	</body>	
