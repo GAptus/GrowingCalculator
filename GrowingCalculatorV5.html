@@ -1,0 +1,312 @@
+<html>
+
+	<head>
+
+		<title>Using JS to process HTML Forms</title>
+
+		<script type="text/javascript">
+
+			var tableCount = 0;
+
+			var changedX;
+			var changedY;
+			var changedWidth;
+			var changedHeight;
+			// Function called when the Go! button is pressed. This will create the JSON Object from the inserted information values.
+			function writeText(form) {
+				var JSONContainer;
+				var previous = [];
+
+				if (tableCount != 0) {
+					for (var i = 1; i <= tableCount; i++) {
+						var current = [];
+						// Assigns values gathered from the relevant action table.
+						// Checks the radio group to see which option has been selected.
+						var option = getCheckedRadio(document.getElementsByName(createName("resizingRadio", i)));
+						var percentage = document.getElementById(createName("percentageTable", i)).value;
+						var delay = document.getElementById(createName("delayTable", i)).value;
+						var duration = document.getElementById(createName("durationTable", i)).value;
+						var emptyArray = [];
+						current.push(pickOption(option, percentage, delay, duration, form, emptyArray));
+					
+						// Adds the current action into an array called previous.
+						previous.push(current[0]);
+					}
+
+					for (var j = tableCount; j <= tableCount && j > 0; j-=2) {
+						var empty = [];
+						empty[0] = previous[j - 1];
+						previous[j - 2].actions = empty;
+					}
+
+					var empty = [];
+					empty[0] = previous[0];
+					JSONContainer = {"actions" : empty};
+					// Writes out the final JSON Object onto the screen.
+					document.write(JSON.stringify(JSONContainer));
+				}
+
+			}
+			// Function called in writeText. Checks through the radio group provided as a parameter and returns the one found to be selected.
+			function getCheckedRadio(radio_group) {
+				for (var i = 0; i < radio_group.length; i++) {
+					var button = radio_group[i];
+					if (button.checked) {
+						return button.value;
+					}
+				}
+			}
+			// Called in writeText. This function processes the option selected for the action and then does an appropriate action.
+			function pickOption(option, percentage, delay, duration, form, array) {
+
+				var temp;
+				// This will get the values from the primary table. The starting x, y, width, height and element_ID.
+				var width = form.widthValue.value;
+				var height = form.heightValue.value;
+				var x = form.xValue.value;
+				var y = form.yValue.value;
+				var elementID = form.elementID.value;
+				// In the case of growing, calculates the changes to the width, height, x and y values and then assigns a new JSON object built with that data to temp.
+				if (option == "growing") {
+					changedWidth = growWidth(width, percentage);
+					changedHeight = growHeight(height, percentage);
+					changedX = growX(changedWidth , width, x);
+					changedY = growY(changedHeight, height, y);
+
+					temp = buildJSON(elementID, changedX, changedY, parseInt(changedWidth), parseInt(changedHeight), delay, duration, array);
+				}
+				// In the case of shrinking, calculates the changes to the width, height, x and y values and then assigns a new JSON object built with that data to temp.
+				else if (option == "shrinking") {
+					changedWidth = shrinkWidth(width, percentage);
+					changedHeight = shrinkHeight(height, percentage);
+					changedX = shrinkX(width, changedWidth, x);
+					changedY = shrinkY(height, changedHeight, y);
+
+					temp = buildJSON(elementID, changedX, changedY, parseInt(changedWidth), parseInt(changedHeight), delay, duration, array);
+				}
+				// else {
+
+				// 	var tempWidth = form.originalWidth.value;
+				// 	var tempHeight = form.originalHeight.value;
+				// 	changedX = x;
+				// 	changedY = y;
+
+				// 	if (percentage > 100) {
+				// 		tempWidth -= (tempWidth * (1 + (percentage / 100)));
+				// 		tempHeight -= (tempHeight * (1 + (percentage / 100)));
+				// 	}
+				// 	if (percentage == 100) {
+
+				// 	}
+				// 	if (percentage < 100) {
+				// 		tempWidth -= (tempWidth * (1 - (percentage / 100)));
+				// 		tempHeight -= (tempHeight * (1 - (percentage / 100)));
+				// 	}
+
+				// 	temp = buildJSON(elementID, changedX, changedY, parseInt(changedWidth), parseInt(changedHeight), delay, duration, array);
+				// }
+
+				// Finally it alters the values of width, height, x and y to the current values so it is ready for the next action.
+				form.widthValue.value = changedWidth;
+				form.heightValue.value = changedHeight;
+				form.xValue.value = changedX;
+				form.yValue.value = changedY;
+
+				return temp;
+			}
+			// Builds a JSON object with the data provided and then returns it.
+			function buildJSON(elementID, x, y, width, height, delay, duration, array) {
+				var current = {
+							type : "ANIMATE",
+							element_id : elementID,
+							exclude : "",
+							x : x,
+							y : y,
+							w : width,
+							h : height,
+							left_clip : "",
+							right_clip : "",
+							top_clip : "",
+							bottom_clip : "",
+							opacity_to : "",
+							delay : delay,
+							duration : duration,
+							direction : "NORMAL",
+							count : 1,
+							easing_function : "LINEAR",
+							loop : "",
+							actions : array
+							};
+
+				return current;
+			}
+			// Calculation classes
+			function shrinkWidth(width, percentage) {
+				var changedWidth = width * (1 - (percentage / 100));
+				return changedWidth;
+			}
+
+			function shrinkHeight(height, percentage) {
+				var changedHeight = height * (1 - (percentage / 100));
+				return changedHeight;
+			}
+
+			function shrinkX(width, changedWidth , x) {
+				var changedX = parseInt(x) - ((parseInt(width) - parseInt(changedWidth)) / 2);
+				return Math.round(changedX);
+			}
+
+			function shrinkY(height, changedHeight, y) {
+				var changedY = parseInt(y) - ((parseInt(height) - parseInt(changedHeight)) / 2);
+				return Math.round(changedY);
+			}
+
+			function growWidth(width, percentage) {
+				var changedWidth = width * (1 + (percentage / 100));
+				return changedWidth;
+			}
+
+			function growHeight(height, percentage) {
+				var changedHeight = height * (1 + (percentage / 100));
+				return changedHeight;
+			}
+
+			function growX(changedWidth, width, x) {
+				var changedX = parseInt(x) + ((parseInt(changedWidth) - parseInt(width)) / 2);
+				return Math.round(changedX);
+			}
+
+			function growY(changedHeight, height, y) {
+				var changedY = parseInt(y) + ((parseInt(changedHeight) - parseInt(height)) / 2);
+				return Math.round(changedY);
+			}
+			// Called when add Actions Button is pressed. Adds in a new table containing the fields for storing the information required to make a new action. 
+			// It also will increment the table count by 1 to keep track of the number of tables.
+			function addAction() {
+
+				tableCount++;
+
+				var hr = document.createElement("hr");
+				var table = document.createElement("table");
+
+				var r = table.insertRow(0);
+				var c = r.insertCell(0);
+				c.innerHTML = "Growing";
+				c = r.insertCell(1);
+				c.innerHTML = '<input type="radio" name=' + createName("resizingRadio", tableCount) + ' value="growing" />';
+				c = r.insertCell(2);
+				c.innerHTML = "Shrinking";
+				c = r.insertCell(3);
+				c.innerHTML = '<input type="radio" name=' + createName("resizingRadio", tableCount) + ' value="shrinking" />';
+				c = r.insertCell(4);
+				c.innerHTML = "Grow From 0";
+				c = r.insertCell(5);
+				c.innerHTML = '<input type="radio" name=' + createName("resizingRadio", tableCount) + ' value="growFromZero" />';
+				r = table.insertRow(1);
+				c = r.insertCell(0);
+				c.innerHTML = "Percentage";
+				c = r.insertCell(1);
+				c.innerHTML = '<input type="text"  id=' + createName("percentageTable", tableCount) + ' value="0" />';
+				c = r.insertCell(2);
+				c.innerHTML = "Delay";
+				c = r.insertCell(3);
+				c.innerHTML = '<input type="text" id=' + createName("delayTable", tableCount) + ' value="0" />';
+				c = r.insertCell(4);
+				c.innerHTML = "Duration";
+				c = r.insertCell(5);
+				c.innerHTML = '<input type="text" id=' + createName("durationTable", tableCount) + ' value="0" />';
+
+				// Appends the newly created table to a div tag called actionContainer.
+				document.getElementById("actionsContainer").appendChild(table);
+				document.getElementById("actionsContainer").appendChild(hr);
+			}
+			// Concatenates a name and a number, returning the concatenation.
+			function createName(name, count) {
+				var currentName = name + count;
+				return currentName;
+			}
+
+		</script>
+
+	</head>	
+
+
+	<body>
+
+		<form name="myForm" action="" method="GET">
+			<table>
+				<h3>Enter the original width and height</h3>
+				<tr>
+					<td>
+						Width: 
+					</td>
+					<td>
+						<input type="text" name="originalWidth">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Height:
+					</td>		
+					<td>
+						<input type="text" name="originalHeight">
+					</td>	
+				</tr>
+			</table>
+			<table>
+				<h3>Enter your starting values</h3>
+				<tr>
+					<td>
+						Element_ID:
+					</td>
+					<td>
+						<input type="text" name="elementID">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						X:
+					</td>
+					<td>
+						<input type="text" name="xValue">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Y:
+					</td>
+					<td>
+						<input type="text" name="yValue">
+					</td>   
+				</tr>
+				<tr>
+					<td>
+						Width: 
+					</td>
+					<td>
+						<input type="text" name="widthValue">
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Height:
+					</td>
+					<td>
+						<input type="text" name="heightValue">
+					</td>
+				</tr>
+			</table>
+
+			<hr>
+
+			<div id="actionsContainer"></div>
+
+
+			<input type="button" name="write" value="GO!" onclick="writeText(this.form)">
+			
+
+			<input type="button" name="addActionButton" value="Add a new Action" onclick="addAction()"
+
+		</form>	
+
+	</body>	
