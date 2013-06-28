@@ -1,0 +1,5 @@
+Growing Calculator
+
+HTML Webpage which accepts values and performs mathematical operations on them accordingly to user input and returns the information as a JSON Object.
+
+The webpage can dynamically change allowing for multiple actions to be added in.
