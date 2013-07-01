@@ -8,6 +8,8 @@
 
 			var tableCount = 0;
 
+			var repeating = 0;
+
 			var changedX;
 			var changedY;
 			var changedWidth;
@@ -17,38 +19,50 @@
 				var JSONContainer;
 				var previous = [];
 
-				if (tableCount != 0) {
-					for (var i = 1; i <= tableCount; i++) {
-						var current = [];
-						// Assigns values gathered from the relevant action table.
-						// Checks the radio group to see which option has been selected.
-						var option = getCheckedRadio(document.getElementsByName(createName("resizingRadio", i)));
-						var percentage = document.getElementById(createName("percentageTable", i)).value;
-						var delay = document.getElementById(createName("delayTable", i)).value;
-						var duration = document.getElementById(createName("durationTable", i)).value;
-						var emptyArray = [];
-						current.push(pickOption(option, percentage, delay, duration, form, emptyArray));
-					
-						// Adds the current action into an array called previous.
-						previous.push(current[0]);
-					}
-					// Checks for the table count not being equal to one, if the table count is equal to one this loops is not needed therefore should be skipped.
-					if (tableCount != 1) {
-						// This loops goes through the array containing all the objects in the previous array. It begins at the top and works down. It adds the object above it into the object below it 
-						// in the action variable of the object, adding it in as an array.
-						for (var j = tableCount; j <= tableCount && j > 1 ; j--) {
-							var empty = [];
-							empty[0] = previous[j - 1];
-							previous[j - 2].actions = empty;
-						}
-					}
+				var repeatNum = 0;
 
-					var empty = [];
-					empty[0] = previous[0];
-					JSONContainer = {"actions" : empty};
-					// Writes out the final JSON Object onto the screen.
-					document.write(JSON.stringify(JSONContainer));
+				var repeatedTableCount = 0;
+
+				if (repeating == 1) {
+					repeatNum = parseInt(document.getElementById(createName("repeatCountTable", 1)).value);
 				}
+
+					if (tableCount != 0) {
+						for (var l = 1; l <= repeatNum; l++) {
+							for (var i = 1; i <= tableCount; i++) {
+								var current = [];
+								// Assigns values gathered from the relevant action table.
+								// Checks the radio group to see which option has been selected.
+								var option = getCheckedRadio(document.getElementsByName(createName("resizingRadio", i)));
+								var percentage = document.getElementById(createName("percentageTable", i)).value;
+								var delay = document.getElementById(createName("delayTable", i)).value;
+								var duration = document.getElementById(createName("durationTable", i)).value;
+								var emptyArray = [];
+								current.push(pickOption(option, percentage, delay, duration, form, emptyArray));
+							
+								// Adds the current action into an array called previous.
+								previous.push(current[0]);
+							}
+							repeatedTableCount = repeatedTableCount + tableCount;
+						}						
+							
+						// Checks for the table count not being equal to one, if the table count is equal to one this loops is not needed therefore should be skipped.
+						if (tableCount != 1) {
+							// This loops goes through the array containing all the objects in the previous array. It begins at the top and works down. It adds the object above it into the object below it 
+							// in the action variable of the object, adding it in as an array.
+							for (var j = repeatedTableCount; j <= repeatedTableCount && j > 1 ; j--) {
+								var empty = [];
+								empty[0] = previous[j - 1];
+								previous[j - 2].actions = empty;
+							}
+						}
+
+						var empty = [];
+						empty[0] = previous[0];
+						JSONContainer = {"actions" : empty};
+						// Writes out the final JSON Object onto the screen.
+						document.write(JSON.stringify(JSONContainer));
+					}
 
 			}
 			// Function called in writeText. Checks through the radio group provided as a parameter and returns the one found to be selected.
@@ -60,6 +74,7 @@
 					}
 				}
 			}
+
 			// Called in writeText. This function processes the option selected for the action and then does an appropriate action.
 			function pickOption(option, percentage, delay, duration, form, array) {
 
@@ -194,6 +209,8 @@
 
 				tableCount++;
 
+				var selected = document.getElementById("actionOption");
+
 				var newDiv = document.createElement("div");
 				var divIdName = "action" + tableCount;
 				newDiv.setAttribute('id', divIdName);
@@ -230,6 +247,16 @@
 				c.innerHTML = "Duration";
 				c = r.insertCell(5);
 				c.innerHTML = '<input type="text" id=' + createName("durationTable", tableCount) + ' value="0" />';
+
+
+				if (selected.value == "repeat") {
+					c = r.insertCell(6);
+					c.innerHTML = "Repeat Count";
+					c = r.insertCell(7);
+					c.innerHTML = '<input type="text" id=' + createName("repeatCountTable", tableCount) + ' value="0"  maxlength="2" />' 
+
+					repeating = 1;
+				}
 
 				// Appends the newly created table to a div tag called actionContainer.
 				newDiv.appendChild(table);
@@ -338,10 +365,18 @@
 
 			<hr>
 
-			<input type="button" name="write" value="GO!" onclick="writeText(this.form)">
-			
-
 			<input type="button" name="addActionButton" value="Add a new Action" onclick="addAction()">
+
+			<select id="actionOption">
+				<option value="custom">custom</option>
+				<option value="repeat">repeat</option>
+			</select>
+
+			<br>
+			<br>
+
+			<input type="button" name="write" value="GO!" onclick="writeText(this.form)">
+
 
 		</form>	
 
