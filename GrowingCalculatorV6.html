@@ -32,8 +32,10 @@
 						// Adds the current action into an array called previous.
 						previous.push(current[0]);
 					}
-
+					// Checks for the table count not being equal to one, if the table count is equal to one this loops is not needed therefore should be skipped.
 					if (tableCount != 1) {
+						// This loops goes through the array containing all the objects in the previous array. It begins at the top and works down. It adds the object above it into the object below it 
+						// in the action variable of the object, adding it in as an array.
 						for (var j = tableCount; j <= tableCount && j > 1 ; j--) {
 							var empty = [];
 							empty[0] = previous[j - 1];
@@ -192,7 +194,14 @@
 
 				tableCount++;
 
+				var newDiv = document.createElement("div");
+				var divIdName = "action" + tableCount;
+				newDiv.setAttribute('id', divIdName);
+
 				var hr = document.createElement("hr");
+				var hrId = "hr" + tableCount;
+				hr.setAttribute('id', hrId);
+
 				var table = document.createElement("table");
 
 				var r = table.insertRow(0);
@@ -223,9 +232,26 @@
 				c.innerHTML = '<input type="text" id=' + createName("durationTable", tableCount) + ' value="0" />';
 
 				// Appends the newly created table to a div tag called actionContainer.
-				document.getElementById("actionsContainer").appendChild(table);
+				newDiv.appendChild(table);
+				document.getElementById("actionsContainer").appendChild(newDiv);
 				document.getElementById("actionsContainer").appendChild(hr);
 			}
+
+			function removeAction() {
+				var d = document.getElementById("actionsContainer");
+
+				var oldDivName = "action" + tableCount;
+				var oldDiv = document.getElementById(oldDivName);
+
+				var oldhrName = "hr" + tableCount;
+				var oldHr = document.getElementById(oldhrName);
+
+				d.removeChild(oldDiv);
+				d.removeChild(oldHr);
+
+				tableCount--;
+			}
+
 			// Concatenates a name and a number, returning the concatenation.
 			function createName(name, count) {
 				var currentName = name + count;
@@ -308,10 +334,14 @@
 			<div id="actionsContainer"></div>
 
 
+			<input type="button" name="removeButton" value="removeAction" onclick="removeAction()" >
+
+			<hr>
+
 			<input type="button" name="write" value="GO!" onclick="writeText(this.form)">
 			
 
-			<input type="button" name="addActionButton" value="Add a new Action" onclick="addAction()"
+			<input type="button" name="addActionButton" value="Add a new Action" onclick="addAction()">
 
 		</form>	
 
