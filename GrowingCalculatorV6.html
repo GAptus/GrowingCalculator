@@ -92,7 +92,7 @@
 					changedX = growX(changedWidth , width, x);
 					changedY = growY(changedHeight, height, y);
 
-					temp = buildJSON(elementID, changedX, changedY, parseInt(changedWidth), parseInt(changedHeight), delay, duration, array);
+					temp = buildJSON(elementID, changedX, changedY, Math.round(parseInt(changedWidth)), Math.round(parseInt(changedHeight)), delay, duration, array);
 				}
 				// In the case of shrinking, calculates the changes to the width, height, x and y values and then assigns a new JSON object built with that data to temp.
 				else if (option == "shrinking") {
@@ -101,7 +101,7 @@
 					changedX = shrinkX(width, changedWidth, x);
 					changedY = shrinkY(height, changedHeight, y);
 
-					temp = buildJSON(elementID, changedX, changedY, parseInt(changedWidth), parseInt(changedHeight), delay, duration, array);
+					temp = buildJSON(elementID, changedX, changedY, Math.round(parseInt(changedWidth)), Math.round(parseInt(changedHeight)), delay, duration, array);
 				}
 				else {
 
