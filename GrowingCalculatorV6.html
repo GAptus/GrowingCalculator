@@ -48,7 +48,8 @@
 							
 						// Checks for the table count not being equal to one, if the table count is equal to one this loops is not needed therefore should be skipped.
 						if (tableCount != 1) {
-							// This loops goes through the array containing all the objects in the previous array. It begins at the top and works down. It adds the object above it into the object below it 
+							// This loops goes through the array containing all the objects in the previous array. It begins at the top and works down. It adds the object above it into the object below 
+							// it 
 							// in the action variable of the object, adding it in as an array.
 							for (var j = repeatedTableCount; j <= repeatedTableCount && j > 1 ; j--) {
 								var empty = [];
@@ -85,6 +86,7 @@
 				var x = form.xValue.value;
 				var y = form.yValue.value;
 				var elementID = form.elementID.value;
+
 				// In the case of growing, calculates the changes to the width, height, x and y values and then assigns a new JSON object built with that data to temp.
 				if (option == "growing") {
 					changedWidth = growWidth(width, percentage);
@@ -94,6 +96,7 @@
 
 					temp = buildJSON(elementID, changedX, changedY, Math.round(parseInt(changedWidth)), Math.round(parseInt(changedHeight)), delay, duration, array);
 				}
+
 				// In the case of shrinking, calculates the changes to the width, height, x and y values and then assigns a new JSON object built with that data to temp.
 				else if (option == "shrinking") {
 					changedWidth = shrinkWidth(width, percentage);
@@ -103,13 +106,12 @@
 
 					temp = buildJSON(elementID, changedX, changedY, Math.round(parseInt(changedWidth)), Math.round(parseInt(changedHeight)), delay, duration, array);
 				}
+
 				else {
 
 					var tempWidth = form.originalWidth.value;
 					var tempHeight = form.originalHeight.value;
-					changedX = x;
-					changedY = y;
-
+					
 					if (percentage > 100) {
 						tempWidth = (tempWidth * percentage / 100);
 						tempHeight = (tempHeight * percentage / 100);
@@ -117,7 +119,8 @@
 						changedY = parseInt(y) + (parseInt(tempHeight) / 2);
 					}
 					if (percentage == 100) {
-
+						changedX = x;
+						changedY = y;
 					}
 					if (percentage < 100) {
 						tempWidth = (tempWidth * (1 - (percentage / 100)));
@@ -137,6 +140,7 @@
 
 				return temp;
 			}
+
 			// Builds a JSON object with the data provided and then returns it.
 			function buildJSON(elementID, x, y, width, height, delay, duration, array) {
 				var current = {
